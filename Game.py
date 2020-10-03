@@ -1,4 +1,4 @@
-import pygame
+import pygame as pg
 import os
 
 _image_library = {}
@@ -7,28 +7,27 @@ def get_image(path):
         image = _image_library.get(path)
         if image == None:
                 canonicalized_path = path.replace('/', os.sep).replace('\\', os.sep)
-                image = pygame.image.load(canonicalized_path)
+                image = pg.image.load(canonicalized_path)
                 _image_library[path] = image
         return image
 
-screenheight = 500
-screenwidth = 1000
 
 
 
-pygame.init()
-clock = pygame.time.Clock()
-vec = pygame.math.Vector2  # 2 for two dimensional
+
+pg.init()
+clock = pg.time.Clock()
+vec = pg.math.Vector2  # 2 for two dimensional
  
-HEIGHT = 500
-WIDTH = 1000
+SCREENHEIGHT = 500
+SCREENWIDTH = 1000
 ACC = 0.5
 FRIC = -0.12
 FPS = 60
-screen = pygame.display.set_mode((WIDTH, HEIGHT)) 
-pygame.display.set_caption("Game so far")
+screen = pg.display.set_mode((SCREENWIDTH, SCREENHEIGHT)) 
+pg.display.set_caption("Game so far")
 
-
+all_sprites = pg.sprite.Group()
 done = False
 is_blue = True
 x = 30
@@ -41,6 +40,8 @@ flapcount = 1
 characterfile = "C:/Users/USER/Documents/Code/orang/orangphoto{}{}.png"
 speed = 3
 flapspeed = 25
+pressed = pg.key.get_pressed()
+working = "none yet"
 
 def flapcalc():
     global flapcount
@@ -54,52 +55,117 @@ def flapcalc():
     elif flapcount < flapspeed:
         flapcount += 1
 
-
-while not done:
-        for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    done = True
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                    is_blue = not is_blue
+class player(pg.sprite.Sprite):
+    x = 30
+    y = 300
+    
+    def __init__(self):
+        pg.sprite.Sprite.__init__(self)
         
-        pressed = pygame.key.get_pressed()
-        #if pressed[pygame.K_UP]: y -= 3
-        #if pressed[pygame.K_DOWN]: y += 3
+        char = get_image(characterfile.format(looking,flap))
         
-        if pressed[pygame.K_RSHIFT]: #or pressed[pygame.K_LSHIFT]:
-            speed = 6
-            flapspeed = 5
-        if not pressed[pygame.K_RSHIFT]: #or pressed[pygame.K_LSHIFT]:
-            flapspeed = 25
-            speed = 3
+        self.image = char
+        self.surf = pg.image.load("C:/Users/USER/Documents/Code/orang/orangphotofw1.png")
+        self.rect = self.image.get_rect()
+        
+        self.pos = vec((10, 385))
+        self.vel = vec(0,0)
+        self.acc = vec(0,0)
+        
+        all_sprites.add(self)
+    def movecalc(self):
+        #global x
+        
 
-        #    flapspeed = 25
-        if pressed[pygame.K_LEFT]:
-            
+        self.acc = vec(0,0)
+        global working
+        global looking
+        working += "movecalc"
+        pressed = pg.key.get_pressed()
+
+
+
+        
+        if pressed[pg.K_LEFT]:
             looking = "bw"
-            x -= speed
+            #x -= speed
+            self.acc.x = -ACC
             flapspeed = 15
             flapcalc()
-        elif pressed[pygame.K_RIGHT]:
-
+        elif pressed[pg.K_RIGHT]:
+            self.acc.x = ACC
+            
             looking = "fw"
-            x += speed
+            #x += speed
             flapspeed = 15
             flapcalc()
-        elif flapspeed != 5:
+        if pressed[pg.K_RSHIFT]: 
+            self.acc.x *= 2
+            flapspeed = 5
+        if pressed[pg.K_LSHIFT]: 
             flapspeed = 25
-            flapcalc()
+            self.acc.x *= 2
+        
+
+        self.acc.x += self.vel.x * FRIC
+        self.vel += self.acc
+        self.pos += self.vel + 0.5 * self.acc
+        #self.rect = (x, y)
+        if self.pos.x > SCREENWIDTH:
+            self.pos.x = 0
+        if self.pos.x < 0:
+            self.pos.x = SCREENWIDTH
+        working = str(self.pos)+str(self.acc)+str(self.vel)
+        self.rect.midbottom = self.pos
+class platform(pg.sprite.Sprite):
+    def __init__(self):
+        pg.sprite.Sprite.__init__(self)
+        
+        self.surf = pg.Surface((SCREENWIDTH, bgheight))
+        self.surf.fill((bgcolour))
+        self.rect = self.surf.get_rect(center = (SCREENWIDTH/2, bgheight/2))
+        all_sprites.add(self)
+    #def setloc(x,y):
+
+
+
+
+orang = player()
+floor = platform()
+
+print(working)
+while not done:
+        #event loop
+        for event in pg.event.get():
+                
+                if event.type == pg.QUIT:
+                    done = True
+                if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
+                    print(working)
+                    print(pressed)
+
+                '''if event.type == pg.KEYDOWN and (event.key == pg.K_RIGHT):
+                    print(working)
+                    orang.movecalc()'''
+                
+        #game logic
+
+        
+        orang.movecalc()
+
 
 
 
         
-        
+        #drawing
         screen.fill((0, 0, 0))
-        #flapcalc()
-        pygame.draw.rect(screen, bgcolour, pygame.Rect(0, 470, screenwidth, bgheight))
-        character = (characterfile.format(looking,flap))
-        screen.blit(get_image(character), (x, y))
-        pygame.display.flip()
+        
+        #pg.draw.rect(screen, bgcolour, pg.Rect(0, 470, SCREENWIDTH, bgheight))
+        for entity in all_sprites:
+            screen.blit(entity.surf, entity.rect)
+        
+        pg.display.update()
+        pg.display.flip()
         clock.tick(FPS)
 
 #small change
