@@ -23,7 +23,7 @@ SCREENHEIGHT = 700
 SCREENWIDTH = 1000
 ACC = 0.5
 FRIC = -0.12
-GRAV = 0.5
+GRAV = 1
 FPS = 60
 screen = pg.display.set_mode((SCREENWIDTH, SCREENHEIGHT)) 
 pg.display.set_caption("Game so far")
@@ -44,11 +44,13 @@ flapspeed = 25
 platforms = pg.sprite.Group()
 pressed = pg.key.get_pressed()
 working = "none yet"
-attackspeed = 5
-attackdist = 100
 peak = False
 weapons = pg.sprite.Group()
 totalmove = 0
+going = False
+
+
+
 
 def flapcalc():
     global flapcount
@@ -69,20 +71,28 @@ class weapon(pg.sprite.Sprite):
         self.surf = pg.image.load("C:/Users/USER/Documents/Code/orang/knotspriteempty.png")
         
         self.rect = self.image.get_rect()
+
+        self.weight = 5
+        self.acc = int(orang.throwstrength)
+        
         all_sprites.add(self)
         weapons.add(self)
     def attack(self,player):
         
         
         self.surf = pg.image.load("C:/Users/USER/Documents/Code/orang/knotsprite.png")
-        self.pos = vec(player.pos)
-        self.pos.y -= player.rect.height/2
+        self.pos = vec(player.rect.topright)
+        #self.pos.y -= player.rect.centery
+        
+        
+        
         if looking == "fw":
-            self.pos.x += 60
+            self.pos.x -= 10
+        
         if looking == "bw":
-            self.pos.x -= 60
-        global totalmove
-        totalmove = 0
+            self.pos.x -= 120
+        
+        
         #while not self.pos.x - playerloc.x >= 100:# or not player.rect.contains(self.rect):
         #    self.pos.x += 1
         #    self.rect.center = self.pos
@@ -91,12 +101,18 @@ class weapon(pg.sprite.Sprite):
     def movecalc(self, player):
         global peak
         global going
+        global working
         global totalmove
         playerloc = vec(player.rect.center)
+        attackspeed = player.attackspeed
+        hits = pg.sprite.spritecollide(self, platforms, False)
+        returnspeed = player.returnspeed
+
         if going == True:
-            if totalmove < 100 and not peak:
+            if self.acc > 0:
                 if looking == "fw":
                     self.pos.x += attackspeed
+                    working += "throw"
                 if looking == "bw":
                     self.pos.x -= attackspeed
                 
@@ -104,21 +120,31 @@ class weapon(pg.sprite.Sprite):
                     self.pos.x += attackspeed
                 if self.pos.x < playerloc.x:
                     self.pos.x -= attackspeed
+                self.acc -= 10
                 
-                totalmove += 10
                 
-                self.rect.center = self.pos
-            elif  totalmove >= attackdist or peak:
+                
+            elif peak:
                 peak = True
                 if self.pos.x > playerloc.x:
-                    self.pos.x -= attackspeed
+                    self.pos.x -= returnspeed
                 if self.pos.x < playerloc.x:
-                    self.pos.x += attackspeed
+                    self.pos.x += returnspeed
                 if self.pos.y > playerloc.y:
-                    self.pos.y -= attackspeed
+                    self.pos.y -= returnspeed
                 if self.pos.y < playerloc.y:
-                    self.pos.y += attackspeed
-                self.rect.center = self.pos
+                    self.pos.y += returnspeed
+            
+            if not peak:
+                if hits:
+                    if self.pos.y < hits[0].rect.bottom:  
+                        peak = True
+                if self.acc == 0 and not peak:
+                    self.pos.y += GRAV*self.weight*1.5
+
+
+            self.pos.y += GRAV*self.weight
+            self.rect.center = self.pos
                 
             if player.rect.contains(self.rect):
                 peak = False
@@ -141,6 +167,12 @@ class player(pg.sprite.Sprite):
         self.pos = vec((10, 490))
         self.vel = vec(0,0)
         self.acc = vec(0,0)
+        self.weight = 1
+        
+        self.attackspeed = 4
+        self.returnspeed = 9
+        self.throwstrength = 150
+        self.jumpower = 23
         
         self.jumping = False
 
@@ -149,7 +181,7 @@ class player(pg.sprite.Sprite):
         hits = pg.sprite.spritecollide(self, platforms, False)
         if hits and not self.jumping:
            self.jumping = True
-           self.vel.y = -15
+           self.vel.y = -self.jumpower
  
     def cancel_jump(self):
         if self.jumping:
@@ -168,7 +200,7 @@ class player(pg.sprite.Sprite):
         global working
         global looking
 
-        self.acc = vec(0,GRAV)
+        self.acc = vec(0,GRAV*self.weight)
         hits = pg.sprite.spritecollide(self , platforms, False)
         if self.vel.y > 0:
             if hits:
@@ -246,12 +278,11 @@ class platform(pg.sprite.Sprite):
         self.surf.fill((bgcolour))
 
 floor = platform()
-orang = player()
-
 plat1 = platform()
 floor.setloc(0, SCREENHEIGHT)
 plat1.setloc(500, 500)
 plat1.setsize(30, 200)
+orang = player()
 
 print(working)
 while not done:
@@ -262,13 +293,15 @@ while not done:
                     done = True
                 if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                     print(working)
+                    
                 if event.type == pg.KEYDOWN and event.key == pg.K_UP:
                     orang.jump()
                 if event.type == pg.KEYDOWN and event.key == pg.K_DOWN:
                     orang.cancel_jump()
                 if event.type == pg.KEYDOWN and event.key == pg.K_z:
-                    orang.attack()
-                    going = True
+                    if going == False:
+                        orang.attack()
+                        going = True
 
 
         #game logic
