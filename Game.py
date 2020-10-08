@@ -48,8 +48,8 @@ peak = False
 weapons = pg.sprite.Group()
 totalmove = 0
 going = False
-
-
+playerparts = pg.sprite.Group()
+enemies = pg.sprite.Group()
 
 
 def flapcalc():
@@ -112,7 +112,7 @@ class weapon(pg.sprite.Sprite):
             if self.acc > 0:
                 if looking == "fw":
                     self.pos.x += attackspeed
-                    working += "throw"
+                    
                 if looking == "bw":
                     self.pos.x -= attackspeed
                 
@@ -167,8 +167,11 @@ class player(pg.sprite.Sprite):
         self.pos = vec((10, 490))
         self.vel = vec(0,0)
         self.acc = vec(0,0)
-        self.weight = 1
         
+        self.weight = 1
+        self.iframe = 0
+
+        self.hp = 3
         self.attackspeed = 4
         self.returnspeed = 9
         self.throwstrength = 150
@@ -176,6 +179,7 @@ class player(pg.sprite.Sprite):
         
         self.jumping = False
 
+        playerparts.add(self)
         all_sprites.add(self)
     def jump(self): 
         hits = pg.sprite.spritecollide(self, platforms, False)
@@ -209,7 +213,8 @@ class player(pg.sprite.Sprite):
                     self.vel.y = 0
                     self.jumping = False
             
-        
+        if self.hp == 0:
+            self.kill()
         
         pressed = pg.key.get_pressed()
 
@@ -222,6 +227,7 @@ class player(pg.sprite.Sprite):
             self.acc.x = -ACC
             flapspeed = 15
             flapcalc()
+            
         elif pressed[pg.K_RIGHT]:
             self.acc.x = ACC
             
@@ -239,7 +245,8 @@ class player(pg.sprite.Sprite):
             flapspeed = 5
             self.acc.x *= 2
         
-        
+        self.collidecheck()
+        self.iframe -= 1
 
         self.acc.x += self.vel.x * FRIC
         self.vel += self.acc
@@ -254,7 +261,109 @@ class player(pg.sprite.Sprite):
         self.surf = get_image(characterfile.format(looking,flap))
         
         self.rect.midbottom = self.pos
+    def collidecheck(self):
+        hit = pg.sprite.spritecollide(self, enemies, False)
+        if hit and self.iframe <= 0:
+            for enemy in enemies:
+                if enemy.aggro:    
+                    self.hp -= 1
+                    print(self.hp)
+                    print(enemy.hp)
+                    self.iframe = 120
+class enemy(pg.sprite.Sprite):
+    def __init__(self):
+        pg.sprite.Sprite.__init__(self)
+        
+        self.imageroot = "C:/Users/USER/Documents/Code/lizard{}.png"
+        
+        self.image = pg.image.load("C:/Users/USER/Documents/Code/lizard1.png")
+        self.surf = pg.image.load("C:/Users/USER/Documents/Code/lizard1.png")
+        
+        self.pos = vec((500, 600))#SCREENHEIGHT-bgheight))
+        self.vel = vec(0,0)
+        self.acc = vec(0,0)
+        self.weight = 1
+        
+        self.hp = 3
+        self.attackspeed = 4
+        self.returnspeed = 9
+        self.throwstrength = 150
+        self.jumpower = 23
+        
+        self.aggro = False
+        self.iframe = 0
+        self.step = 0
+        self.stepcount = 10
+        self.forward = True
+        self.jumping = False
 
+        #self.surf = pg.transform.scale(self.surf, (200,100))
+        self.rect = self.image.get_rect()
+        all_sprites.add(self)
+        enemies.add(self)
+    def update(self):
+        self.acc = vec(0,GRAV*self.weight)
+
+        hits = pg.sprite.spritecollide(self , platforms, False)
+        if self.vel.y > 0:
+            if hits:
+                if self.pos.y < hits[0].rect.bottom:               
+                    self.pos.y = hits[0].rect.top +1
+                    self.vel.y = 0
+                    self.jumping = False
+        
+        hit = pg.sprite.spritecollide(self , weapons, False)
+        if hit and self.iframe <= 0:
+            self.hp -= 1
+            self.iframe = 50
+            self.aggro = True
+            print(self.aggro)
+        
+
+
+        if self.hp <= 0:
+            self.kill()
+
+        if self.rect.right > SCREENWIDTH:
+            
+            
+            self.surf = pg.transform.flip(self.surf, True, False)
+            self.forward = False
+            self.pos.x -= 5
+
+        if self.rect.left < 0:
+            
+            self.surf = pg.transform.flip(self.surf, True, False)
+            self.forward = True
+            self.pos.x += 5
+            
+        if self.forward:
+            self.acc.x = ACC
+        elif not self.forward:
+            self.acc.x = -ACC
+
+        if self.stepcount > 10:
+            self.step = not self.step
+            self.stepcount = 0
+            self.surf = get_image(self.imageroot.format(int(self.step)))
+            if not self.forward:
+                self.surf = pg.transform.flip(self.surf, True, False)
+
+
+        self.acc.x += self.vel.x * FRIC
+        self.vel += self.acc
+        self.pos += self.vel + 0.5 * self.acc
+        
+        self.stepcount += 1 
+        self.iframe -= 1
+
+        global working
+        working = int(self.step)
+
+        
+
+        self.rect.midbottom = self.pos
+        #if self.looking = "fw":
 
     
 class platform(pg.sprite.Sprite):
@@ -283,6 +392,8 @@ floor.setloc(0, SCREENHEIGHT)
 plat1.setloc(500, 500)
 plat1.setsize(30, 200)
 orang = player()
+liz1 = enemy()
+
 
 print(working)
 while not done:
@@ -310,9 +421,13 @@ while not done:
         for i in all_sprites:
             i.update()
 
+        while not orang.alive():
+            screen.fill((255, 0, 0))
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                        done = True
 
 
-        
         #drawing
         screen.fill((0, 0, 0))
         
