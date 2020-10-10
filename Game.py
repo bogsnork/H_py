@@ -34,7 +34,8 @@ done = False
 x = 30
 y = 300
 bgheight = 30
-bgcolour = (135,150,74)
+bgcolour = (251, 180, 92)
+platcolour = bgcolour
 looking = "fw"
 flap = 1
 flapcount = 1
@@ -50,7 +51,19 @@ totalmove = 0
 going = False
 playerparts = pg.sprite.Group()
 enemies = pg.sprite.Group()
+buttons = pg.sprite.Group()
+titlefont = pg.font.Font(None, 115)
+smallText = pg.font.Font(None,20)
 
+def text_objects(text, font):
+    textSurface = font.render(text, True, (0, 0, 0))
+    return textSurface, textSurface.get_rect()
+
+
+
+def gameover():
+    for sprite in all_sprites:
+        sprite.kill()
 
 def flapcalc():
     global flapcount
@@ -63,6 +76,71 @@ def flapcalc():
         flapcount = 1
     elif flapcount < flapspeed:
         flapcount += 1
+
+def game_intro():
+    global intro
+    intro = True
+
+    while intro:
+        for event in pg.event.get():
+            #print(event)
+            if event.type == pg.QUIT:
+                pg.quit()
+                quit()
+            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
+                
+                intro = False
+        screen.fill((255, 255, 255))
+        
+        textSurf, textRect = text_objects("Title", titlefont)
+        textRect.center = ((SCREENWIDTH/2),(SCREENHEIGHT/2))
+        screen.blit(textSurf, textRect)
+
+        for i in all_sprites:
+            i.update()
+
+        for entity in all_sprites:
+            screen.blit(entity.surf, entity.rect)
+
+
+        #pg.draw.rect(screen, (0, 0, 0),(350,450,100,50))
+        #pg.draw.rect(screen, (0, 0, 0),(550,450,100,50))
+
+        pg.display.update()
+
+class button(pg.sprite.Sprite):
+    def __init__(self):
+        pg.sprite.Sprite.__init__(self)
+        
+        self.surf = pg.Surface((100, 50))
+        self.surf.fill((0, 0, 0))
+        self.rect = self.surf.get_rect(center = (SCREENWIDTH/2, bgheight/2))
+        self.textSurf, self.textRect = text_objects("GO!", smallText)
+        self.textRect.center = ( self.rect.center )
+        self.surf.blit(self.textSurf, self.textRect)
+        
+        all_sprites.add(self)
+        buttons.add(self)
+
+    def setloc(self, x, y):
+        
+        self.rect.bottomleft = x,y
+        
+    def setsize(self, height, width):
+        self.rect.height = height
+        self.rect.width = width
+        self.surf = pg.Surface((width, height))
+        self.surf.fill((0, 0, 0))
+    def update(self):
+        mouse = pg.mouse.get_pos()
+
+        #print(mouse)
+
+        if self.rect.right > mouse[0] > self.rect.left and self.rect.bottom > mouse[1] > self.rect.top:
+            self.surf.fill((0, 0, 0))
+        else:
+            self.surf.fill((56, 56, 56))
+        self.surf.blit(self.textSurf, self.textRect)
 
 class weapon(pg.sprite.Sprite):
     def __init__(self):
@@ -270,6 +348,10 @@ class player(pg.sprite.Sprite):
                     print(self.hp)
                     print(enemy.hp)
                     self.iframe = 120
+    
+    
+
+
 class enemy(pg.sprite.Sprite):
     def __init__(self):
         pg.sprite.Sprite.__init__(self)
@@ -372,28 +454,55 @@ class platform(pg.sprite.Sprite):
         pg.sprite.Sprite.__init__(self)
         
         self.surf = pg.Surface((SCREENWIDTH, bgheight))
-        self.surf.fill((bgcolour))
+        self.surf.fill((platcolour))
         self.rect = self.surf.get_rect(center = (SCREENWIDTH/2, bgheight/2))
         all_sprites.add(self)
         platforms.add(self)
     def setloc(self, x, y):
-        global working
+        
         self.rect.bottomleft = x,y
-        #working = self.rect
+        
+    def setsize(self, height, width):
+        self.rect.height = height
+        self.rect.width = width
+        self.surf = pg.Surface((width, height))
+        self.surf.fill((platcolour))
+
+class background(pg.sprite.Sprite):
+    def __init__(self):
+        pg.sprite.Sprite.__init__(self)
+        
+        self.surf = pg.Surface((SCREENWIDTH, bgheight))
+        self.surf.fill((bgcolour))
+        self.rect = self.surf.get_rect(center = (SCREENWIDTH/2, bgheight/2))
+        all_sprites.add(self)
+    def setloc(self, x, y):
+        
+        self.rect.bottomleft = x,y
+        
     def setsize(self, height, width):
         self.rect.height = height
         self.rect.width = width
         self.surf = pg.Surface((width, height))
         self.surf.fill((bgcolour))
 
+but1 = button()
+but2 = button()
+but1.setloc(350,450)
+but2.setloc(550,450)
+
+game_intro()
+
 floor = platform()
 plat1 = platform()
 floor.setloc(0, SCREENHEIGHT)
+bg1 = background()
+bg1.setloc(0, SCREENHEIGHT-bgheight)
 plat1.setloc(500, 500)
 plat1.setsize(30, 200)
-orang = player()
-liz1 = enemy()
 
+liz1 = enemy()
+orang = player()
 
 print(working)
 while not done:
@@ -403,8 +512,9 @@ while not done:
                 if event.type == pg.QUIT:
                     done = True
                 if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-                    print(working)
-                    
+                    print(pg.font.get_fonts)
+                    #orang.kill()
+                    game_intro()
                 if event.type == pg.KEYDOWN and event.key == pg.K_UP:
                     orang.jump()
                 if event.type == pg.KEYDOWN and event.key == pg.K_DOWN:
@@ -421,17 +531,14 @@ while not done:
         for i in all_sprites:
             i.update()
 
-        while not orang.alive():
-            screen.fill((255, 0, 0))
-            for event in pg.event.get():
-                if event.type == pg.QUIT:
-                        done = True
+        if not orang.alive():
+            gameover()
 
 
         #drawing
         screen.fill((0, 0, 0))
         
-        pg.draw.rect(screen, bgcolour, pg.Rect(0, (SCREENHEIGHT-60), SCREENWIDTH, bgheight))
+        #pg.draw.rect(screen, platcolour, pg.Rect(0, (SCREENHEIGHT-60), SCREENWIDTH, bgheight))
         for entity in all_sprites:
             screen.blit(entity.surf, entity.rect)
         if weapons.has():
