@@ -53,7 +53,7 @@ playerparts = pg.sprite.Group()
 enemies = pg.sprite.Group()
 buttons = pg.sprite.Group()
 titlefont = pg.font.Font(None, 115)
-smallText = pg.font.Font(None,20)
+buttontext = pg.font.Font(None,55)
 
 def text_objects(text, font):
     textSurface = font.render(text, True, (0, 0, 0))
@@ -77,6 +77,12 @@ def flapcalc():
     elif flapcount < flapspeed:
         flapcount += 1
 
+def end_intro():
+    global intro
+    intro = False
+    for i in all_sprites:
+        i.kill()
+
 def game_intro():
     global intro
     intro = True
@@ -96,29 +102,37 @@ def game_intro():
         textRect.center = ((SCREENWIDTH/2),(SCREENHEIGHT/2))
         screen.blit(textSurf, textRect)
 
-        for i in all_sprites:
-            i.update()
-
         for entity in all_sprites:
             screen.blit(entity.surf, entity.rect)
 
+        for i in all_sprites:
+            i.update()
+
+        
+        #for i in buttons:
+         #   screen.blit(i.textSurf, i.textRect)
 
         #pg.draw.rect(screen, (0, 0, 0),(350,450,100,50))
         #pg.draw.rect(screen, (0, 0, 0),(550,450,100,50))
 
         pg.display.update()
 
+
+
 class button(pg.sprite.Sprite):
     def __init__(self):
         pg.sprite.Sprite.__init__(self)
         
-        self.surf = pg.Surface((100, 50))
+        self.surf = pg.Surface((100, 45))
         self.surf.fill((0, 0, 0))
         self.rect = self.surf.get_rect(center = (SCREENWIDTH/2, bgheight/2))
-        self.textSurf, self.textRect = text_objects("GO!", smallText)
-        self.textRect.center = ( self.rect.center )
-        self.surf.blit(self.textSurf, self.textRect)
-        
+        self.textcont = " Start"
+        self.textSurf = pg.font.Font.render(buttontext, self.textcont, False, (255, 255, 255))
+        self.textRect = self.rect
+        #self.textoff = self.rect.topright + vec(20, 10)
+
+        self.action = end_intro
+
         all_sprites.add(self)
         buttons.add(self)
 
@@ -133,14 +147,23 @@ class button(pg.sprite.Sprite):
         self.surf.fill((0, 0, 0))
     def update(self):
         mouse = pg.mouse.get_pos()
+        click = pg.mouse.get_pressed()
 
         #print(mouse)
-
+        
+        self.textRect.center = (self.rect.center)
+        self.textSurf = pg.font.Font.render(buttontext, self.textcont, False, (255, 255, 255))
+        screen.blit(self.textSurf, self.textRect)
+        
         if self.rect.right > mouse[0] > self.rect.left and self.rect.bottom > mouse[1] > self.rect.top:
             self.surf.fill((0, 0, 0))
+            if click[0] == 1 and self.action != None:
+                self.action()  
         else:
             self.surf.fill((56, 56, 56))
-        self.surf.blit(self.textSurf, self.textRect)
+    def setbut(self, text, action):
+        self.textcont = (text)    
+        self.action = action
 
 class weapon(pg.sprite.Sprite):
     def __init__(self):
@@ -490,6 +513,7 @@ but1 = button()
 but2 = button()
 but1.setloc(350,450)
 but2.setloc(550,450)
+but2.setbut(" Quit", quit)
 
 game_intro()
 
