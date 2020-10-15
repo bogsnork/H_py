@@ -59,13 +59,6 @@ def text_objects(text, font):
     textSurface = font.render(text, True, (0, 0, 0))
     return textSurface, textSurface.get_rect()
 
-
-
-
-    
-
-
-
 def end_intro():
     #global intro
     #intro = False
@@ -183,7 +176,7 @@ def gameover():
 
         pg.display.update()
 
-class button(pg.sprite.Sprite):
+""" class button(pg.sprite.Sprite):
     def __init__(self):
         pg.sprite.Sprite.__init__(self)
         
@@ -227,7 +220,7 @@ class button(pg.sprite.Sprite):
             self.surf.fill((56, 56, 56))
     def setbut(self, text, action):
         self.textcont = (text)    
-        self.action = action
+        self.action = action """
 
 class weapon(pg.sprite.Sprite):
     def __init__(self):
