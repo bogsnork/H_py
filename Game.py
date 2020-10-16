@@ -1,5 +1,6 @@
 import pygame as pg
 import os
+from ui import button
 
 _image_library = {}
 def get_image(path):
@@ -39,7 +40,7 @@ platcolour = bgcolour
 looking = "fw"
 flap = 1
 flapcount = 1
-characterfile = "C:/Users/USER/Documents/Code/orang/orangphoto{}{}.png"
+
 speed = 3
 flapspeed = 25
 platforms = pg.sprite.Group()
@@ -55,43 +56,39 @@ buttons = pg.sprite.Group()
 titlefont = pg.font.Font(None, 115)
 buttontext = pg.font.Font(None,55)
 
+from ui import button
+
+
 def text_objects(text, font):
     textSurface = font.render(text, True, (0, 0, 0))
     return textSurface, textSurface.get_rect()
 
-
-
-def gameover():
-    for sprite in all_sprites:
-        sprite.kill()
-
-def flapcalc():
-    global flapcount
-    if flapcount == flapspeed:
-        global flap
-        if flap < 4:
-            flap += 1
-        else:
-            flap = 1
-        flapcount = 1
-    elif flapcount < flapspeed:
-        flapcount += 1
-
 def end_intro():
-    global intro
-    intro = False
+    #global intro
+    #intro = False
     for i in all_sprites:
         i.kill()
+    gameloop()
 
 def game_intro():
-    global intro
+    for sprite in all_sprites:
+        sprite.kill()
+    
+    but1 = button(screen, SCREENWIDTH, SCREENHEIGHT, all_sprites, buttons)
+    but2 = button(screen, SCREENWIDTH, SCREENHEIGHT, all_sprites, buttons)
+    but1.setloc(350,450)
+    but1.setbut(" Start", end_intro)
+    but2.setloc(550,450)
+    but2.setbut(" Quit", quit)
+
+    #global intro
     intro = True
 
     while intro:
         for event in pg.event.get():
             #print(event)
             if event.type == pg.QUIT:
-                pg.quit()
+                #pg.quit()
                 quit()
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 
@@ -104,6 +101,8 @@ def game_intro():
 
         for entity in all_sprites:
             screen.blit(entity.surf, entity.rect)
+        for entity in buttons:
+            screen.blit(entity.textSurf, entity.textRect)
 
         for i in all_sprites:
             i.update()
@@ -117,9 +116,78 @@ def game_intro():
 
         pg.display.update()
 
+def reset():
+    for sprite in all_sprites:
+        sprite.kill()
+    '''global death
+    dead = False
+
+    floor = platform()
+    plat1 = platform()
+    floor.setloc(0, SCREENHEIGHT)
+    bg1 = background()
+    bg1.setloc(0, SCREENHEIGHT-bgheight)
+    plat1.setloc(500, 500)
+    plat1.setsize(30, 200)
+
+    liz1 = enemy()
+    orang = player()'''
+
+    gameloop()
+
+def gameover():
+    for sprite in all_sprites:
+        sprite.kill()
+    quitbut = button(screen, SCREENWIDTH, SCREENHEIGHT, all_sprites, buttons)
+    rebut = button(screen, SCREENWIDTH, SCREENHEIGHT, all_sprites, buttons)
+    titlebut = button(screen, SCREENWIDTH, SCREENHEIGHT, all_sprites, buttons)
+    
+    quitbut.setbut("Quit", quit)
+    rebut.setbut("Retry", reset)
+    titlebut.setbut("Return to title", game_intro)
+
+    titlebut.setsize(255, 45)
+
+    quitbut.setloc(SCREENWIDTH/2 - 50, 450)
+    titlebut.setloc((SCREENWIDTH/2) - 125, 500)
+    rebut.setloc((SCREENWIDTH/2) - 50, 550)
+
+    dead = True
+
+    while dead:
+        for event in pg.event.get():
+            #print(event)
+            if event.type == pg.QUIT:
+                pg.quit()
+                quit()
+            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
+                
+                dead = False
+        screen.fill((255, 255, 255))
+        
+        textSurf, textRect = text_objects("Game over", titlefont)
+        textRect.center = ((SCREENWIDTH/2),(SCREENHEIGHT/2))
+        screen.blit(textSurf, textRect)
+
+        for entity in all_sprites:
+            screen.blit(entity.surf, entity.rect)
+        for entity in buttons:
+            screen.blit(entity.textSurf, entity.textRect)
 
 
-class button(pg.sprite.Sprite):
+        for i in all_sprites:
+            i.update()
+
+        
+        #for i in buttons:
+         #   screen.blit(i.textSurf, i.textRect)
+
+        #pg.draw.rect(screen, (0, 0, 0),(350,450,100,50))
+        #pg.draw.rect(screen, (0, 0, 0),(550,450,100,50))
+
+        pg.display.update()
+
+""" class button(pg.sprite.Sprite):
     def __init__(self):
         pg.sprite.Sprite.__init__(self)
         
@@ -140,7 +208,7 @@ class button(pg.sprite.Sprite):
         
         self.rect.bottomleft = x,y
         
-    def setsize(self, height, width):
+    def setsize(self, width, height):
         self.rect.height = height
         self.rect.width = width
         self.surf = pg.Surface((width, height))
@@ -163,7 +231,7 @@ class button(pg.sprite.Sprite):
             self.surf.fill((56, 56, 56))
     def setbut(self, text, action):
         self.textcont = (text)    
-        self.action = action
+        self.action = action """
 
 class weapon(pg.sprite.Sprite):
     def __init__(self):
@@ -172,7 +240,9 @@ class weapon(pg.sprite.Sprite):
         self.surf = pg.image.load("C:/Users/USER/Documents/Code/orang/knotspriteempty.png")
         
         self.rect = self.image.get_rect()
-
+        
+        self.going = True
+        self.peak = False
         self.weight = 5
         self.acc = int(orang.throwstrength)
         
@@ -187,10 +257,10 @@ class weapon(pg.sprite.Sprite):
         
         
         
-        if looking == "fw":
+        if player.looking == "fw":
             self.pos.x -= 10
         
-        if looking == "bw":
+        if player.looking == "bw":
             self.pos.x -= 120
         
         
@@ -200,21 +270,22 @@ class weapon(pg.sprite.Sprite):
     def update(self):
         self.movecalc(orang)
     def movecalc(self, player):
-        global peak
-        global going
+        
         global working
-        global totalmove
+        
+        
+
         playerloc = vec(player.rect.center)
         attackspeed = player.attackspeed
         hits = pg.sprite.spritecollide(self, platforms, False)
         returnspeed = player.returnspeed
 
-        if going == True:
+        if self.going == True:
             if self.acc > 0:
-                if looking == "fw":
+                if player.looking == "fw":
                     self.pos.x += attackspeed
                     
-                if looking == "bw":
+                if player.looking == "bw":
                     self.pos.x -= attackspeed
                 
                 if self.pos.x > playerloc.x:
@@ -225,8 +296,8 @@ class weapon(pg.sprite.Sprite):
                 
                 
                 
-            elif peak:
-                peak = True
+            elif self.peak:
+                self.peak = True
                 if self.pos.x > playerloc.x:
                     self.pos.x -= returnspeed
                 if self.pos.x < playerloc.x:
@@ -236,11 +307,11 @@ class weapon(pg.sprite.Sprite):
                 if self.pos.y < playerloc.y:
                     self.pos.y += returnspeed
             
-            if not peak:
+            if not self.peak:
                 if hits:
                     if self.pos.y < hits[0].rect.bottom:  
-                        peak = True
-                if self.acc == 0 and not peak:
+                        self.peak = True
+                if self.acc == 0 and not self.peak:
                     self.pos.y += GRAV*self.weight*1.5
 
 
@@ -248,9 +319,9 @@ class weapon(pg.sprite.Sprite):
             self.rect.center = self.pos
                 
             if player.rect.contains(self.rect):
-                peak = False
+                self.peak = False
                 self.surf = pg.image.load("C:/Users/USER/Documents/Code/orang/knotspriteempty.png")
-                going = False
+                self.going = False
                 self.kill()
 class player(pg.sprite.Sprite):
     x = 30
@@ -259,7 +330,11 @@ class player(pg.sprite.Sprite):
     def __init__(self):
         pg.sprite.Sprite.__init__(self)
         
-        char = get_image(characterfile.format(looking,flap))
+        self.characterfile = "C:/Users/USER/Documents/Code/orang/orangphoto{}{}.png"
+        
+        self.looking = "fw"
+
+        char = get_image(self.characterfile.format(self.looking,flap))
         
         self.image = char
         self.surf = pg.image.load("C:/Users/USER/Documents/Code/orang/orangphotofw1.png")
@@ -277,10 +352,13 @@ class player(pg.sprite.Sprite):
         self.returnspeed = 9
         self.throwstrength = 150
         self.jumpower = 23
-        
+        self.flapcount = 1
+        self.flap = 1
+        self.flapspeed = 25
+
         self.jumping = False
 
-        playerparts.add(self)
+        
         all_sprites.add(self)
     def jump(self): 
         hits = pg.sprite.spritecollide(self, platforms, False)
@@ -295,16 +373,10 @@ class player(pg.sprite.Sprite):
 
     def attack(self):
         if not weapons.has():
-            knot =  weapon()
-        
-        
-        knot.attack(self)
+            knot = weapon()
+            knot.attack(self)
     
     def update(self):
-        global flapspeed
-        global working
-        global looking
-
         self.acc = vec(0,GRAV*self.weight)
         hits = pg.sprite.spritecollide(self , platforms, False)
         if self.vel.y > 0:
@@ -316,6 +388,7 @@ class player(pg.sprite.Sprite):
             
         if self.hp == 0:
             self.kill()
+            gameover()
         
         pressed = pg.key.get_pressed()
 
@@ -323,29 +396,33 @@ class player(pg.sprite.Sprite):
         
         
         if pressed[pg.K_LEFT]:
-            looking = "bw"
+            self.looking = "bw"
             #x -= speed
             self.acc.x = -ACC
-            flapspeed = 15
-            flapcalc()
+            #self.flapspeed = 15
+            #self.flapcalc()
             
         elif pressed[pg.K_RIGHT]:
             self.acc.x = ACC
             
-            looking = "fw"
+            self.looking = "fw"
             #x += speed
-            flapspeed = 15
-            flapcalc()
-        else:
-            flapspeed = 25
-            flapcalc()
+            #self.flapspeed = 15
+            #self.flapcalc()
+        #else:
+            #self.flapspeed = 25
+            #self.flapcalc()
         if pressed[pg.K_RSHIFT]: 
             self.acc.x *= 2
-            flapspeed = 5
+            #self.flapspeed = 5
         if pressed[pg.K_LSHIFT]: 
-            flapspeed = 5
+            #self.flapspeed = 5
             self.acc.x *= 2
         
+
+        self.flapspeed = 25/((self.vel.x**2 + self.vel.y**2)**0.5 + 0.5)
+        self.flapcalc()
+
         self.collidecheck()
         self.iframe -= 1
 
@@ -359,7 +436,7 @@ class player(pg.sprite.Sprite):
         if self.pos.x < 0:
             self.pos.x = SCREENWIDTH
 
-        self.surf = get_image(characterfile.format(looking,flap))
+        self.surf = get_image(self.characterfile.format(self.looking,self.flap))
         
         self.rect.midbottom = self.pos
     def collidecheck(self):
@@ -371,7 +448,17 @@ class player(pg.sprite.Sprite):
                     print(self.hp)
                     print(enemy.hp)
                     self.iframe = 120
+    def flapcalc(self):
     
+        if self.flapcount >= self.flapspeed:
+            
+            if self.flap < 4:
+                self.flap += 1
+            else:
+                self.flap= 1
+            self.flapcount = 1
+        elif self.flapcount < self.flapspeed:
+            self.flapcount += 1
     
 
 
@@ -468,7 +555,7 @@ class enemy(pg.sprite.Sprite):
         
 
         self.rect.midbottom = self.pos
-        #if self.looking = "fw":
+        
 
     
 class platform(pg.sprite.Sprite):
@@ -509,44 +596,38 @@ class background(pg.sprite.Sprite):
         self.surf = pg.Surface((width, height))
         self.surf.fill((bgcolour))
 
-but1 = button()
-but2 = button()
-but1.setloc(350,450)
-but2.setloc(550,450)
-but2.setbut(" Quit", quit)
+def gameloop():
+    floor = platform()
+    plat1 = platform()
+    floor.setloc(0, SCREENHEIGHT)
+    bg1 = background()
+    bg1.setloc(0, SCREENHEIGHT-bgheight)
+    plat1.setloc(500, 500)
+    plat1.setsize(30, 200)
 
-game_intro()
-
-floor = platform()
-plat1 = platform()
-floor.setloc(0, SCREENHEIGHT)
-bg1 = background()
-bg1.setloc(0, SCREENHEIGHT-bgheight)
-plat1.setloc(500, 500)
-plat1.setsize(30, 200)
-
-liz1 = enemy()
-orang = player()
-
-print(working)
-while not done:
+    liz1 = enemy()
+    global orang
+    orang = player()
+    global done
+    while not done:
         #event loop
         for event in pg.event.get():
                 
-                if event.type == pg.QUIT:
-                    done = True
-                if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-                    print(pg.font.get_fonts)
-                    #orang.kill()
-                    game_intro()
-                if event.type == pg.KEYDOWN and event.key == pg.K_UP:
-                    orang.jump()
-                if event.type == pg.KEYDOWN and event.key == pg.K_DOWN:
-                    orang.cancel_jump()
-                if event.type == pg.KEYDOWN and event.key == pg.K_z:
-                    if going == False:
-                        orang.attack()
-                        going = True
+            if event.type == pg.QUIT:
+                #done = True
+                quit()
+            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
+                    #print(pg.font.get_fonts())
+                orang.kill()
+                print(orang.vel)
+                print(orang.flapspeed)
+            if event.type == pg.KEYDOWN and event.key == pg.K_UP:
+                orang.jump()
+            if event.type == pg.KEYDOWN and event.key == pg.K_DOWN:
+                orang.cancel_jump()
+            if event.type == pg.KEYDOWN and event.key == pg.K_z:
+                orang.attack()
+                    
 
 
         #game logic
@@ -571,5 +652,12 @@ while not done:
         pg.display.update()
         pg.display.flip()
         clock.tick(FPS)
+
+game_intro()
+
+
+
+print(working)
+
 
 #small change

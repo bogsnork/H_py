@@ -1,18 +1,25 @@
 #module: user interface 
+import pygame as pg
+import os
+
+pg.font.init()
+buttontext = pg.font.Font(None,55)
 
 class button(pg.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, screen, SCREENWIDTH, SCREENHEIGHT, all_sprites, buttons):
+
         pg.sprite.Sprite.__init__(self)
+
         
         self.surf = pg.Surface((100, 45))
         self.surf.fill((0, 0, 0))
-        self.rect = self.surf.get_rect(center = (SCREENWIDTH/2, bgheight/2))
+        self.rect = self.surf.get_rect(center = (SCREENWIDTH/2, 15))
         self.textcont = " Start"
         self.textSurf = pg.font.Font.render(buttontext, self.textcont, False, (255, 255, 255))
         self.textRect = self.rect
-        #self.textoff = self.rect.topright + vec(20, 10)
+        
 
-        self.action = end_intro
+        self.action = None
 
         all_sprites.add(self)
         buttons.add(self)
@@ -34,7 +41,7 @@ class button(pg.sprite.Sprite):
         
         self.textRect.center = (self.rect.center)
         self.textSurf = pg.font.Font.render(buttontext, self.textcont, False, (255, 255, 255))
-        screen.blit(self.textSurf, self.textRect)
+        #screen.blit(self.textSurf, self.textRect)
         
         if self.rect.right > mouse[0] > self.rect.left and self.rect.bottom > mouse[1] > self.rect.top:
             self.surf.fill((0, 0, 0))
