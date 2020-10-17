@@ -1,6 +1,6 @@
 import pygame as pg
 import os
-from ui import button
+from ui import button, text
 
 _image_library = {}
 def get_image(path):
@@ -45,12 +45,9 @@ buttons = pg.sprite.Group()
 platforms = pg.sprite.Group()
 weapons = pg.sprite.Group()
 titlefont = pg.font.Font(None, 115)
-buttontext = pg.font.Font(None,55)
+#buttontext = pg.font.Font(None,55)
 invsprites = pg.sprite.Group()
 pausesprites = pg.sprite.Group()
-
-from ui import button
-
 
 def text_objects(text, font):
     textSurface = font.render(text, True, (0, 0, 0))
@@ -162,7 +159,7 @@ def resume():
 
 def pause():
     pause= True
-    pausetitle = text()
+    pausetitle = text(SCREENWIDTH, all_sprites, titlefont)
     pausetitle.settext("Pause", (0, 0, 0))
     quitbut = button(screen, SCREENWIDTH, SCREENHEIGHT, all_sprites, buttons)
     rebut = button(screen, SCREENWIDTH, SCREENHEIGHT, all_sprites, buttons)
@@ -208,7 +205,7 @@ def pause():
 
 def openinv():
     inv = True
-    invtitle = text()
+    invtitle = text(SCREENWIDTH, all_sprites, titlefont)
     invtitle.settext("Inventory", (255, 255, 255))
     invsprites.add(invtitle)
 
@@ -229,7 +226,7 @@ def openinv():
             screen.blit(i.surf, i.rect)
         pg.display.update()
 
-class text(pg.sprite.Sprite):
+""" class text(pg.sprite.Sprite):
     def __init__(self):
         pg.sprite.Sprite.__init__(self)
         
@@ -258,7 +255,7 @@ class text(pg.sprite.Sprite):
 
         self.surf = pg.font.Font.render(titlefont, self.cont, False, self.col)
 
-        
+         """
 
 
 
