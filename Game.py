@@ -37,24 +37,17 @@ y = 300
 bgheight = 30
 bgcolour = (251, 180, 92)
 platcolour = bgcolour
-looking = "fw"
-flap = 1
-flapcount = 1
-
-speed = 3
-flapspeed = 25
-platforms = pg.sprite.Group()
 pressed = pg.key.get_pressed()
 working = "none yet"
-peak = False
-weapons = pg.sprite.Group()
-totalmove = 0
-going = False
 playerparts = pg.sprite.Group()
 enemies = pg.sprite.Group()
 buttons = pg.sprite.Group()
+platforms = pg.sprite.Group()
+weapons = pg.sprite.Group()
 titlefont = pg.font.Font(None, 115)
 buttontext = pg.font.Font(None,55)
+invsprites = pg.sprite.Group()
+pausesprites = pg.sprite.Group()
 
 from ui import button
 
@@ -64,11 +57,9 @@ def text_objects(text, font):
     return textSurface, textSurface.get_rect()
 
 def end_intro():
-    #global intro
-    #intro = False
     for i in all_sprites:
         i.kill()
-    gameloop()
+    gameloopfirst()
 
 def game_intro():
     for sprite in all_sprites:
@@ -90,9 +81,7 @@ def game_intro():
             if event.type == pg.QUIT:
                 #pg.quit()
                 quit()
-            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-                
-                intro = False
+
         screen.fill((255, 255, 255))
         
         textSurf, textRect = text_objects("Title", titlefont)
@@ -119,21 +108,8 @@ def game_intro():
 def reset():
     for sprite in all_sprites:
         sprite.kill()
-    '''global death
-    dead = False
 
-    floor = platform()
-    plat1 = platform()
-    floor.setloc(0, SCREENHEIGHT)
-    bg1 = background()
-    bg1.setloc(0, SCREENHEIGHT-bgheight)
-    plat1.setloc(500, 500)
-    plat1.setsize(30, 200)
-
-    liz1 = enemy()
-    orang = player()'''
-
-    gameloop()
+    gameloopfirst()
 
 def gameover():
     for sprite in all_sprites:
@@ -160,9 +136,7 @@ def gameover():
             if event.type == pg.QUIT:
                 pg.quit()
                 quit()
-            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-                
-                dead = False
+
         screen.fill((255, 255, 255))
         
         textSurf, textRect = text_objects("Game over", titlefont)
@@ -178,31 +152,94 @@ def gameover():
         for i in all_sprites:
             i.update()
 
-        
-        #for i in buttons:
-         #   screen.blit(i.textSurf, i.textRect)
+        pg.display.update()
 
-        #pg.draw.rect(screen, (0, 0, 0),(350,450,100,50))
-        #pg.draw.rect(screen, (0, 0, 0),(550,450,100,50))
+def resume():
+    pause = False
+    for i in pausesprites:
+        i.kill() 
+    gameloop()
+
+def pause():
+    pause= True
+    pausetitle = text()
+    pausetitle.settext("Pause", (0, 0, 0))
+    quitbut = button(screen, SCREENWIDTH, SCREENHEIGHT, all_sprites, buttons)
+    rebut = button(screen, SCREENWIDTH, SCREENHEIGHT, all_sprites, buttons)
+    titlebut = button(screen, SCREENWIDTH, SCREENHEIGHT, all_sprites, buttons)
+    
+    quitbut.setbut("Quit", quit)
+    rebut.setbut("Resume", resume)
+    titlebut.setbut("Return to title", game_intro)
+
+    titlebut.setsize(255, 45)
+    rebut.setsize(150, 45)
+
+    pausetitle.setloc(SCREENWIDTH/2 - 115, SCREENHEIGHT/2)
+    rebut.setloc((SCREENWIDTH/2) - 75, 450)
+    titlebut.setloc((SCREENWIDTH/2) - 125, 500)
+    quitbut.setloc(SCREENWIDTH/2 - 50, 550)
+
+    pausesprites.add(pausetitle)
+    pausesprites.add(quitbut)
+    pausesprites.add(rebut)
+    pausesprites.add(titlebut)
+
+    while pause:
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                quit()
+            if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
+                pause = False
+                for i in pausesprites:
+                    i.kill() 
+
+
+        for i in pausesprites:
+            i.update()
+
+        screen.fill((255, 255, 255))
+        for i in pausesprites:
+            screen.blit(i.surf, i.rect)
+        for entity in buttons:
+            screen.blit(entity.textSurf, entity.textRect)
 
         pg.display.update()
 
-""" class button(pg.sprite.Sprite):
+def openinv():
+    inv = True
+    invtitle = text()
+    invtitle.settext("Inventory", (255, 255, 255))
+    invsprites.add(invtitle)
+
+    while inv:
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                quit()
+            if event.type == pg.KEYDOWN and event.key == pg.K_e:
+                inv = False
+                for i in invsprites:
+                    i.kill() 
+
+        for i in invsprites:
+            i.update()
+
+        screen.fill((0, 0, 0))
+        for i in invsprites:
+            screen.blit(i.surf, i.rect)
+        pg.display.update()
+
+class text(pg.sprite.Sprite):
     def __init__(self):
         pg.sprite.Sprite.__init__(self)
         
-        self.surf = pg.Surface((100, 45))
-        self.surf.fill((0, 0, 0))
+        self.col = (0, 0, 0)
+        self.cont = " Start"
+        self.surf = pg.font.Font.render(titlefont, self.cont, False, self.col)
         self.rect = self.surf.get_rect(center = (SCREENWIDTH/2, bgheight/2))
-        self.textcont = " Start"
-        self.textSurf = pg.font.Font.render(buttontext, self.textcont, False, (255, 255, 255))
-        self.textRect = self.rect
-        #self.textoff = self.rect.topright + vec(20, 10)
-
-        self.action = end_intro
-
+        
         all_sprites.add(self)
-        buttons.add(self)
+        
 
     def setloc(self, x, y):
         
@@ -213,25 +250,17 @@ def gameover():
         self.rect.width = width
         self.surf = pg.Surface((width, height))
         self.surf.fill((0, 0, 0))
+    def settext(self, text, col):
+        self.cont = (text)
+        self.col = col
     def update(self):
-        mouse = pg.mouse.get_pos()
-        click = pg.mouse.get_pressed()
 
-        #print(mouse)
+
+        self.surf = pg.font.Font.render(titlefont, self.cont, False, self.col)
+
         
-        self.textRect.center = (self.rect.center)
-        self.textSurf = pg.font.Font.render(buttontext, self.textcont, False, (255, 255, 255))
-        screen.blit(self.textSurf, self.textRect)
-        
-        if self.rect.right > mouse[0] > self.rect.left and self.rect.bottom > mouse[1] > self.rect.top:
-            self.surf.fill((0, 0, 0))
-            if click[0] == 1 and self.action != None:
-                self.action()  
-        else:
-            self.surf.fill((56, 56, 56))
-    def setbut(self, text, action):
-        self.textcont = (text)    
-        self.action = action """
+
+
 
 class weapon(pg.sprite.Sprite):
     def __init__(self):
@@ -331,10 +360,10 @@ class player(pg.sprite.Sprite):
         pg.sprite.Sprite.__init__(self)
         
         self.characterfile = "C:/Users/USER/Documents/Code/orang/orangphoto{}{}.png"
-        
+        self.flap = 1
         self.looking = "fw"
 
-        char = get_image(self.characterfile.format(self.looking,flap))
+        char = get_image(self.characterfile.format(self.looking,self.flap))
         
         self.image = char
         self.surf = pg.image.load("C:/Users/USER/Documents/Code/orang/orangphotofw1.png")
@@ -353,7 +382,7 @@ class player(pg.sprite.Sprite):
         self.throwstrength = 150
         self.jumpower = 23
         self.flapcount = 1
-        self.flap = 1
+        
         self.flapspeed = 25
 
         self.jumping = False
@@ -482,6 +511,7 @@ class enemy(pg.sprite.Sprite):
         self.throwstrength = 150
         self.jumpower = 23
         
+        self.moving = True
         self.aggro = False
         self.iframe = 0
         self.step = 0
@@ -516,7 +546,7 @@ class enemy(pg.sprite.Sprite):
         if self.hp <= 0:
             self.kill()
 
-        if self.rect.right > SCREENWIDTH:
+        if self.rect.right > SCREENWIDTH :
             
             
             self.surf = pg.transform.flip(self.surf, True, False)
@@ -528,24 +558,50 @@ class enemy(pg.sprite.Sprite):
             self.surf = pg.transform.flip(self.surf, True, False)
             self.forward = True
             self.pos.x += 5
-            
-        if self.forward:
-            self.acc.x = ACC
-        elif not self.forward:
-            self.acc.x = -ACC
 
-        if self.stepcount > 10:
+        if not self.aggro and self.moving:    
+            if self.forward:
+                self.acc.x = ACC
+            elif not self.forward:
+                self.acc.x = -ACC
+        else:
+            if self.pos.x < orang.pos.x:
+                if self.forward:
+                    self.surf = pg.transform.flip(self.surf, True, False)
+                    self.forward = False
+                    self.acc.x = -ACC
+                elif not self.forward:
+                    self.acc.x = -ACC
+            if self.pos.x > orang.pos.x:
+                if self.forward:
+                    self.acc.x = ACC
+                elif not self.forward:
+                    self.surf = pg.transform.flip(self.surf, True, False)
+                    self.forward = True
+                    self.acc.x = ACC
+            if self.rect.right > SCREENWIDTH:
+                self.moving = False
+
+            if self.rect.left < 0:
+                self.moving = False
+
+
+        if self.stepcount > 10 and self.moving:
             self.step = not self.step
             self.stepcount = 0
             self.surf = get_image(self.imageroot.format(int(self.step)))
             if not self.forward:
                 self.surf = pg.transform.flip(self.surf, True, False)
 
+        if self.moving:
+            self.acc.x += self.vel.x * FRIC
+            self.vel += self.acc
+            self.pos += self.vel + 0.5 * self.acc
+        else:
+            self.surf = get_image(self.imageroot.format(2))
+            if not self.forward:
+                self.surf = pg.transform.flip(self.surf, True, False)
 
-        self.acc.x += self.vel.x * FRIC
-        self.vel += self.acc
-        self.pos += self.vel + 0.5 * self.acc
-        
         self.stepcount += 1 
         self.iframe -= 1
 
@@ -553,7 +609,7 @@ class enemy(pg.sprite.Sprite):
         working = int(self.step)
 
         
-
+        
         self.rect.midbottom = self.pos
         
 
@@ -596,7 +652,7 @@ class background(pg.sprite.Sprite):
         self.surf = pg.Surface((width, height))
         self.surf.fill((bgcolour))
 
-def gameloop():
+def gameloopfirst():
     floor = platform()
     plat1 = platform()
     floor.setloc(0, SCREENHEIGHT)
@@ -618,17 +674,67 @@ def gameloop():
                 quit()
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                     #print(pg.font.get_fonts())
-                orang.kill()
-                print(orang.vel)
-                print(orang.flapspeed)
+                #orang.kill()
+                
+                print(pausetitle.cont)
             if event.type == pg.KEYDOWN and event.key == pg.K_UP:
                 orang.jump()
             if event.type == pg.KEYDOWN and event.key == pg.K_DOWN:
                 orang.cancel_jump()
             if event.type == pg.KEYDOWN and event.key == pg.K_z:
                 orang.attack()
-                    
+            if event.type == pg.KEYDOWN and event.key == pg.K_e:   
+                openinv()     
+            if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
+                pause()
 
+        #game logic
+
+        
+        for i in all_sprites:
+            i.update()
+
+        if not orang.alive():
+            gameover()
+
+
+        #drawing
+        screen.fill((0, 0, 0))
+        
+        #pg.draw.rect(screen, platcolour, pg.Rect(0, (SCREENHEIGHT-60), SCREENWIDTH, bgheight))
+        for entity in all_sprites:
+            screen.blit(entity.surf, entity.rect)
+        if weapons.has():
+            rope = pg.draw.line(screen,(120, 90, 22), orang.rect.center, knot.pos)
+            screen.blit(rope)
+        pg.display.update()
+        pg.display.flip()
+        clock.tick(FPS)
+
+def gameloop():
+    global done
+    while not done:
+        #event loop
+        for event in pg.event.get():
+                
+            if event.type == pg.QUIT:
+                #done = True
+                quit()
+            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
+                    #print(pg.font.get_fonts())
+                #orang.kill()
+                
+                print(pausetitle.cont)
+            if event.type == pg.KEYDOWN and event.key == pg.K_UP:
+                orang.jump()
+            if event.type == pg.KEYDOWN and event.key == pg.K_DOWN:
+                orang.cancel_jump()
+            if event.type == pg.KEYDOWN and event.key == pg.K_z:
+                orang.attack()
+            if event.type == pg.KEYDOWN and event.key == pg.K_e:   
+                openinv()     
+            if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
+                pause()
 
         #game logic
 
