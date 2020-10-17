@@ -265,8 +265,8 @@ class text(pg.sprite.Sprite):
 class weapon(pg.sprite.Sprite):
     def __init__(self):
         pg.sprite.Sprite.__init__(self)
-        self.image = pg.image.load("C:/Users/USER/Documents/Code/orang/knotspriteempty.png")
-        self.surf = pg.image.load("C:/Users/USER/Documents/Code/orang/knotspriteempty.png")
+        self.image = pg.image.load("knotspriteempty.png")
+        self.surf = pg.image.load("knotspriteempty.png")
         
         self.rect = self.image.get_rect()
         
@@ -280,7 +280,7 @@ class weapon(pg.sprite.Sprite):
     def attack(self,player):
         
         
-        self.surf = pg.image.load("C:/Users/USER/Documents/Code/orang/knotsprite.png")
+        self.surf = pg.image.load("knotsprite.png")
         self.pos = vec(player.rect.topright)
         #self.pos.y -= player.rect.centery
         
@@ -349,7 +349,7 @@ class weapon(pg.sprite.Sprite):
                 
             if player.rect.contains(self.rect):
                 self.peak = False
-                self.surf = pg.image.load("C:/Users/USER/Documents/Code/orang/knotspriteempty.png")
+                self.surf = pg.image.load("knotspriteempty.png")
                 self.going = False
                 self.kill()
 class player(pg.sprite.Sprite):
@@ -359,14 +359,14 @@ class player(pg.sprite.Sprite):
     def __init__(self):
         pg.sprite.Sprite.__init__(self)
         
-        self.characterfile = "C:/Users/USER/Documents/Code/orang/orangphoto{}{}.png"
+        self.characterfile = "orangphoto{}{}.png"
         self.flap = 1
         self.looking = "fw"
 
         char = get_image(self.characterfile.format(self.looking,self.flap))
         
         self.image = char
-        self.surf = pg.image.load("C:/Users/USER/Documents/Code/orang/orangphotofw1.png")
+        self.surf = pg.image.load("orangphotofw1.png")
         self.rect = self.image.get_rect()
         
         self.pos = vec((10, 490))
@@ -495,10 +495,10 @@ class enemy(pg.sprite.Sprite):
     def __init__(self):
         pg.sprite.Sprite.__init__(self)
         
-        self.imageroot = "C:/Users/USER/Documents/Code/lizard{}.png"
+        self.imageroot = "lizard{}.png"
         
-        self.image = pg.image.load("C:/Users/USER/Documents/Code/lizard1.png")
-        self.surf = pg.image.load("C:/Users/USER/Documents/Code/lizard1.png")
+        self.image = pg.image.load("lizard1.png")
+        self.surf = pg.image.load("lizard1.png")
         
         self.pos = vec((500, 600))#SCREENHEIGHT-bgheight))
         self.vel = vec(0,0)
