@@ -7,6 +7,12 @@ buttontext = pg.font.Font(None,55)
 titlefont = pg.font.Font(None, 115)
 
 
+# functions
+def text_objects(text, font):
+    textSurface = font.render(text, True, (0, 0, 0))
+    return textSurface, textSurface.get_rect()
+
+# classes
 class button(pg.sprite.Sprite):
     def __init__(self, screen, SCREENWIDTH, SCREENHEIGHT, all_sprites, buttons):
 

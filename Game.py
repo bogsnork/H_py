@@ -1,6 +1,7 @@
 import pygame as pg
 import os
-from ui import button, text
+from ui import text_objects, button, text
+from sprites import weapon
 
 _image_library = {}
 def get_image(path):
@@ -13,10 +14,9 @@ def get_image(path):
         return image
 
 
-
-
-
 pg.init()
+
+# helper functions and variables
 clock = pg.time.Clock()
 vec = pg.math.Vector2  # 2 for two dimensional
  
@@ -49,9 +49,7 @@ titlefont = pg.font.Font(None, 115)
 invsprites = pg.sprite.Group()
 pausesprites = pg.sprite.Group()
 
-def text_objects(text, font):
-    textSurface = font.render(text, True, (0, 0, 0))
-    return textSurface, textSurface.get_rect()
+
 
 def end_intro():
     for i in all_sprites:
@@ -226,129 +224,6 @@ def openinv():
             screen.blit(i.surf, i.rect)
         pg.display.update()
 
-""" class text(pg.sprite.Sprite):
-    def __init__(self):
-        pg.sprite.Sprite.__init__(self)
-        
-        self.col = (0, 0, 0)
-        self.cont = " Start"
-        self.surf = pg.font.Font.render(titlefont, self.cont, False, self.col)
-        self.rect = self.surf.get_rect(center = (SCREENWIDTH/2, bgheight/2))
-        
-        all_sprites.add(self)
-        
-
-    def setloc(self, x, y):
-        
-        self.rect.bottomleft = x,y
-        
-    def setsize(self, width, height):
-        self.rect.height = height
-        self.rect.width = width
-        self.surf = pg.Surface((width, height))
-        self.surf.fill((0, 0, 0))
-    def settext(self, text, col):
-        self.cont = (text)
-        self.col = col
-    def update(self):
-
-
-        self.surf = pg.font.Font.render(titlefont, self.cont, False, self.col)
-
-         """
-
-
-
-class weapon(pg.sprite.Sprite):
-    def __init__(self):
-        pg.sprite.Sprite.__init__(self)
-        self.image = pg.image.load("knotspriteempty.png")
-        self.surf = pg.image.load("knotspriteempty.png")
-        
-        self.rect = self.image.get_rect()
-        
-        self.going = True
-        self.peak = False
-        self.weight = 5
-        self.acc = int(orang.throwstrength)
-        
-        all_sprites.add(self)
-        weapons.add(self)
-    def attack(self,player):
-        
-        
-        self.surf = pg.image.load("knotsprite.png")
-        self.pos = vec(player.rect.topright)
-        #self.pos.y -= player.rect.centery
-        
-        
-        
-        if player.looking == "fw":
-            self.pos.x -= 10
-        
-        if player.looking == "bw":
-            self.pos.x -= 120
-        
-        
-        #while not self.pos.x - playerloc.x >= 100:# or not player.rect.contains(self.rect):
-        #    self.pos.x += 1
-        #    self.rect.center = self.pos
-    def update(self):
-        self.movecalc(orang)
-    def movecalc(self, player):
-        
-        global working
-        
-        
-
-        playerloc = vec(player.rect.center)
-        attackspeed = player.attackspeed
-        hits = pg.sprite.spritecollide(self, platforms, False)
-        returnspeed = player.returnspeed
-
-        if self.going == True:
-            if self.acc > 0:
-                if player.looking == "fw":
-                    self.pos.x += attackspeed
-                    
-                if player.looking == "bw":
-                    self.pos.x -= attackspeed
-                
-                if self.pos.x > playerloc.x:
-                    self.pos.x += attackspeed
-                if self.pos.x < playerloc.x:
-                    self.pos.x -= attackspeed
-                self.acc -= 10
-                
-                
-                
-            elif self.peak:
-                self.peak = True
-                if self.pos.x > playerloc.x:
-                    self.pos.x -= returnspeed
-                if self.pos.x < playerloc.x:
-                    self.pos.x += returnspeed
-                if self.pos.y > playerloc.y:
-                    self.pos.y -= returnspeed
-                if self.pos.y < playerloc.y:
-                    self.pos.y += returnspeed
-            
-            if not self.peak:
-                if hits:
-                    if self.pos.y < hits[0].rect.bottom:  
-                        self.peak = True
-                if self.acc == 0 and not self.peak:
-                    self.pos.y += GRAV*self.weight*1.5
-
-
-            self.pos.y += GRAV*self.weight
-            self.rect.center = self.pos
-                
-            if player.rect.contains(self.rect):
-                self.peak = False
-                self.surf = pg.image.load("knotspriteempty.png")
-                self.going = False
-                self.kill()
 class player(pg.sprite.Sprite):
     x = 30
     y = 300
@@ -399,7 +274,7 @@ class player(pg.sprite.Sprite):
 
     def attack(self):
         if not weapons.has():
-            knot = weapon()
+            knot = weapon(self, all_sprites, weapons, platforms, GRAV)
             knot.attack(self)
     
     def update(self):
