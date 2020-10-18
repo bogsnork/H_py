@@ -5,13 +5,171 @@ import os
 
 # functions
 vec = pg.math.Vector2  # 2 for two dimensional
+_image_library = {}
 
+def get_image(path):
+        global _image_library
+        image = _image_library.get(path)
+        if image == None:
+                canonicalized_path = path.replace('/', os.sep).replace('\\', os.sep)
+                image = pg.image.load(canonicalized_path)
+                _image_library[path] = image
+        return image
 # classes
+
+class player(pg.sprite.Sprite):
+    x = 30
+    y = 300
+    
+    def __init__(self, all_sprites, platforms, enemies, weapons, GRAV, FRIC, ACC, SCREENWIDTH):
+        pg.sprite.Sprite.__init__(self)
+        
+        self.characterfile = "sprites/orangphoto{}{}.png"
+        self.flap = 1
+        self.looking = "fw"
+
+        char = get_image(self.characterfile.format(self.looking,self.flap))
+        
+        self.image = char
+        self.surf = pg.image.load("sprites/orangphotofw1.png")
+        self.rect = self.image.get_rect()
+        
+        self.all_sprites = all_sprites
+        self.platforms = platforms
+        self.enemies = enemies
+        self.weapons = weapons
+        self.GRAV = GRAV
+        self.FRIC = FRIC
+        self.ACC = ACC
+        self.SCREENWIDTH = SCREENWIDTH
+
+
+        self.pos = vec((10, 490))
+        self.vel = vec(0,0)
+        self.acc = vec(0,0)
+        
+        self.weight = 1
+        self.iframe = 0
+
+        self.hp = 3
+        self.attackspeed = 4
+        self.returnspeed = 9
+        self.throwstrength = 150
+        self.jumpower = 23
+        self.flapcount = 1
+        
+        self.flapspeed = 25
+
+        self.jumping = False
+
+        
+        all_sprites.add(self)
+    def jump(self): 
+        hits = pg.sprite.spritecollide(self, self.platforms, False)
+        if hits and not self.jumping:
+           self.jumping = True
+           self.vel.y = -self.jumpower
+ 
+    def cancel_jump(self):
+        if self.jumping:
+            if self.vel.y < -3:
+                self.vel.y = -3
+
+    def attack(self):
+        if not self.weapons.has():
+            knot = weapon(self, self.all_sprites, self.weapons, self.platforms, self.GRAV)
+            knot.attack(self)
+    
+    def update(self):
+        self.acc = vec(0,self.GRAV*self.weight)
+        hits = pg.sprite.spritecollide(self , self.platforms, False)
+        if self.vel.y > 0:
+            if hits:
+                if self.pos.y < hits[0].rect.bottom:               
+                    self.pos.y = hits[0].rect.top +1
+                    self.vel.y = 0
+                    self.jumping = False
+            
+        if self.hp == 0:
+            self.kill()
+            gameover()
+        
+        pressed = pg.key.get_pressed()
+
+
+        
+        
+        if pressed[pg.K_LEFT]:
+            self.looking = "bw"
+            #x -= speed
+            self.acc.x = -self.ACC
+            #self.flapspeed = 15
+            #self.flapcalc()
+            
+        elif pressed[pg.K_RIGHT]:
+            self.acc.x = self.ACC
+            
+            self.looking = "fw"
+            #x += speed
+            #self.flapspeed = 15
+            #self.flapcalc()
+        #else:
+            #self.flapspeed = 25
+            #self.flapcalc()
+        if pressed[pg.K_RSHIFT]: 
+            self.acc.x *= 2
+            #self.flapspeed = 5
+        if pressed[pg.K_LSHIFT]: 
+            #self.flapspeed = 5
+            self.acc.x *= 2
+        
+
+        self.flapspeed = 25/((self.vel.x**2 + self.vel.y**2)**0.5 + 0.5)
+        self.flapcalc()
+
+        self.collidecheck()
+        self.iframe -= 1
+
+        self.acc.x += self.vel.x * self.FRIC
+        self.vel += self.acc
+        self.pos += self.vel + 0.5 * self.acc
+        
+
+        if self.pos.x > self.SCREENWIDTH:
+            self.pos.x = 0
+        if self.pos.x < 0:
+            self.pos.x = self.SCREENWIDTH
+
+        self.surf = get_image(self.characterfile.format(self.looking,self.flap))
+        
+        self.rect.midbottom = self.pos
+    def collidecheck(self):
+        hit = pg.sprite.spritecollide(self, self.enemies, False)
+        if hit and self.iframe <= 0:
+            for enemy in self.enemies:
+                if enemy.aggro:    
+                    self.hp -= 1
+                    print(self.hp)
+                    print(enemy.hp)
+                    self.iframe = 120
+    def flapcalc(self):
+    
+        if self.flapcount >= self.flapspeed:
+            
+            if self.flap < 4:
+                self.flap += 1
+            else:
+                self.flap= 1
+            self.flapcount = 1
+        elif self.flapcount < self.flapspeed:
+            self.flapcount += 1
+    
+
 class weapon(pg.sprite.Sprite):
     def __init__(self, orang, all_sprites, weapons, platforms, GRAV):
         pg.sprite.Sprite.__init__(self)
-        self.image = pg.image.load("knotspriteempty.png")
-        self.surf = pg.image.load("knotspriteempty.png")
+        self.image = pg.image.load("sprites/knotspriteempty.png")
+        self.surf = pg.image.load("sprites/knotspriteempty.png")
         
         self.rect = self.image.get_rect()
         
@@ -30,7 +188,7 @@ class weapon(pg.sprite.Sprite):
     def attack(self,player):
         
         
-        self.surf = pg.image.load("knotsprite.png")
+        self.surf = pg.image.load("sprites/knotsprite.png")
         self.pos = vec(player.rect.topright)
         #self.pos.y -= player.rect.centery
         
@@ -97,6 +255,137 @@ class weapon(pg.sprite.Sprite):
                 
             if player.rect.contains(self.rect):
                 self.peak = False
-                self.surf = pg.image.load("knotspriteempty.png")
+                self.surf = pg.image.load("sprites/knotspriteempty.png")
                 self.going = False
                 self.kill()
+
+
+
+class enemy(pg.sprite.Sprite):
+    def __init__(self, orang, all_sprites, platforms, enemies, weapons, GRAV, FRIC, ACC, SCREENWIDTH):
+        pg.sprite.Sprite.__init__(self)
+        
+        self.orang = orang
+        self.all_sprites = all_sprites
+        self.platforms = platforms
+        self.enemies = enemies
+        self.weapons = weapons
+        self.GRAV = GRAV
+        self.FRIC = FRIC
+        self.ACC = ACC
+        self.SCREENWIDTH = SCREENWIDTH
+
+        self.imageroot = "sprites/lizard{}.png"
+        
+        self.image = pg.image.load("sprites/lizard1.png")
+        self.surf = pg.image.load("sprites/lizard1.png")
+        
+        self.pos = vec((500, 600))#SCREENHEIGHT-bgheight))
+        self.vel = vec(0,0)
+        self.acc = vec(0,0)
+        self.weight = 1
+        
+        self.hp = 3
+        self.attackspeed = 4
+        self.returnspeed = 9
+        self.throwstrength = 150
+        self.jumpower = 23
+        
+        self.moving = True
+        self.aggro = False
+        self.iframe = 0
+        self.step = 0
+        self.stepcount = 10
+        self.forward = True
+        self.jumping = False
+
+        #self.surf = pg.transform.scale(self.surf, (200,100))
+        self.rect = self.image.get_rect()
+        all_sprites.add(self)
+        enemies.add(self)
+    def update(self):
+        self.acc = vec(0, self.GRAV*self.weight)
+
+        hits = pg.sprite.spritecollide(self , self.platforms, False)
+        if self.vel.y > 0:
+            if hits:
+                if self.pos.y < hits[0].rect.bottom:               
+                    self.pos.y = hits[0].rect.top +1
+                    self.vel.y = 0
+                    self.jumping = False
+        
+        hit = pg.sprite.spritecollide(self , self.weapons, False)
+        if hit and self.iframe <= 0:
+            self.hp -= 1
+            self.iframe = 50
+            self.aggro = True
+            print(self.aggro)
+        
+
+
+        if self.hp <= 0:
+            self.kill()
+
+        if self.rect.right > self.SCREENWIDTH :
+            
+            
+            self.surf = pg.transform.flip(self.surf, True, False)
+            self.forward = False
+            self.pos.x -= 5
+
+        if self.rect.left < 0:
+            
+            self.surf = pg.transform.flip(self.surf, True, False)
+            self.forward = True
+            self.pos.x += 5
+
+        if not self.aggro and self.moving:    
+            if self.forward:
+                self.acc.x = self.ACC
+            elif not self.forward:
+                self.acc.x = -self.ACC
+        else:
+            if self.pos.x < self.orang.pos.x:
+                if self.forward:
+                    self.surf = pg.transform.flip(self.surf, True, False)
+                    self.forward = False
+                    self.acc.x = -self.ACC
+                elif not self.forward:
+                    self.acc.x = -self.ACC
+            if self.pos.x > self.orang.pos.x:
+                if self.forward:
+                    self.acc.x = self.ACC
+                elif not self.forward:
+                    self.surf = pg.transform.flip(self.surf, True, False)
+                    self.forward = True
+                    self.acc.x = self.ACC
+            if self.rect.right > self.SCREENWIDTH:
+                self.moving = False
+
+            if self.rect.left < 0:
+                self.moving = False
+
+
+        if self.stepcount > 10 and self.moving:
+            self.step = not self.step
+            self.stepcount = 0
+            self.surf = get_image(self.imageroot.format(int(self.step)))
+            if not self.forward:
+                self.surf = pg.transform.flip(self.surf, True, False)
+
+        if self.moving:
+            self.acc.x += self.vel.x * self.FRIC
+            self.vel += self.acc
+            self.pos += self.vel + 0.5 * self.acc
+        else:
+            self.surf = get_image(self.imageroot.format(2))
+            if not self.forward:
+                self.surf = pg.transform.flip(self.surf, True, False)
+
+        self.stepcount += 1 
+        self.iframe -= 1
+
+        global working
+        working = int(self.step)
+        
+        self.rect.midbottom = self.pos
