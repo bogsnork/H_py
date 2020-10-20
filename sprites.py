@@ -24,11 +24,11 @@ class player(pg.sprite.Sprite):
     def __init__(self, all_sprites, platforms, enemies, weapons, GRAV, FRIC, ACC, SCREENWIDTH):
         pg.sprite.Sprite.__init__(self)
         
-        self.characterfile = "sprites/orangphoto{}{}.png"
+        self.characterfile = "sprites/orangphotofw{}.png"
         self.flap = 1
         self.looking = "fw"
 
-        char = get_image(self.characterfile.format(self.looking,self.flap))
+        char = get_image(self.characterfile.format(self.flap))
         
         self.image = char
         self.surf = pg.image.load("sprites/orangphotofw1.png")
@@ -92,7 +92,7 @@ class player(pg.sprite.Sprite):
             
         if self.hp == 0:
             self.kill()
-            gameover()
+
         
         pressed = pg.key.get_pressed()
 
@@ -101,21 +101,13 @@ class player(pg.sprite.Sprite):
         
         if pressed[pg.K_LEFT]:
             self.looking = "bw"
-            #x -= speed
             self.acc.x = -self.ACC
-            #self.flapspeed = 15
-            #self.flapcalc()
-            
+
         elif pressed[pg.K_RIGHT]:
             self.acc.x = self.ACC
             
             self.looking = "fw"
-            #x += speed
-            #self.flapspeed = 15
-            #self.flapcalc()
-        #else:
-            #self.flapspeed = 25
-            #self.flapcalc()
+
         if pressed[pg.K_RSHIFT]: 
             self.acc.x *= 2
             #self.flapspeed = 5
@@ -140,7 +132,10 @@ class player(pg.sprite.Sprite):
         if self.pos.x < 0:
             self.pos.x = self.SCREENWIDTH
 
-        self.surf = get_image(self.characterfile.format(self.looking,self.flap))
+        if self.looking == "bw":
+            self.surf = pg.transform.flip(get_image(self.characterfile.format(self.flap)), True, False)
+        else:
+            self.surf = get_image(self.characterfile.format(self.flap))
         
         self.rect.midbottom = self.pos
     def collidecheck(self):
