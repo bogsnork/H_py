@@ -319,7 +319,11 @@ class enemy(pg.sprite.Sprite):
 
 
         if self.hp <= 0:
+            print(self.pos)
             self.kill()
+            bone = loot(self.orang, self.all_sprites, self.platforms, self)
+            self.all_sprites.add(bone)
+            print(bone.pos)
 
         if self.rect.right > self.SCREENWIDTH :
             
@@ -384,3 +388,21 @@ class enemy(pg.sprite.Sprite):
         working = int(self.step)
         
         self.rect.midbottom = self.pos
+
+
+class loot(pg.sprite.Sprite):
+    def __init__(self, orang, all_sprites, platforms, spawner):  #, enemies, weapons, GRAV, FRIC, ACC, SCREENWIDTH):
+        pg.sprite.Sprite.__init__(self)
+        self.orang = orang
+        self.all_sprites = all_sprites
+        self.platforms = platforms
+        
+        self.imageroot = ("sprites/bonesprite.png")
+        self.image = pg.image.load("sprites/bonesprite.png")
+        self.surf = pg.image.load("sprites/bonesprite.png")
+
+        self.pos = vec(spawner.pos)
+
+        self.rect = self.image.get_rect()
+      
+        self.all_sprites.add(self)
