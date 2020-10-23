@@ -12,8 +12,8 @@ pg.init()
 clock = pg.time.Clock()
 vec = pg.math.Vector2  # 2 for two dimensional
  
-SCREENHEIGHT = 700
-SCREENWIDTH = 1000
+SCREENHEIGHT = 1000
+SCREENWIDTH = 1700
 ACC = 0.5
 FRIC = -0.12
 GRAV = 1
@@ -55,9 +55,9 @@ def game_intro():
     
     but1 = button(screen, SCREENWIDTH, SCREENHEIGHT, all_sprites, buttons)
     but2 = button(screen, SCREENWIDTH, SCREENHEIGHT, all_sprites, buttons)
-    but1.setloc(350,450)
+    but1.setloc(700,600)
     but1.setbut(" Start", end_intro)
-    but2.setloc(550,450)
+    but2.setloc(900,600)
     but2.setbut(" Quit", quit)
 
     #global intro
@@ -112,9 +112,9 @@ def gameover():
 
     titlebut.setsize(255, 45)
 
-    quitbut.setloc(SCREENWIDTH/2 - 50, 450)
-    titlebut.setloc((SCREENWIDTH/2) - 125, 500)
-    rebut.setloc((SCREENWIDTH/2) - 50, 550)
+    rebut.setloc(SCREENWIDTH/2 - 50, 600)
+    titlebut.setloc((SCREENWIDTH/2) - 125, 650)
+    quitbut.setloc((SCREENWIDTH/2) - 50, 700)
 
     dead = True
 
@@ -202,7 +202,7 @@ def openinv():
     invsprites.add(invtitle)
 
     bonecount = text(SCREENWIDTH, all_sprites, invfont)
-    bonecount.settext(str(orang.bones), (255, 255, 255))
+    bonecount.settext(str(orang.bones) + " Bones", (255, 255, 255))
     bonecount.setloc(0, 150)
     invsprites.add(bonecount)
 
@@ -286,9 +286,9 @@ def gameloopfirst():
                 quit()
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                     #print(pg.font.get_fonts())
-                #orang.kill()
+                orang.kill()
                 
-                print(pausetitle.cont)
+                #print(pausetitle.cont)
             if event.type == pg.KEYDOWN and event.key == pg.K_UP:
                 orang.jump()
             if event.type == pg.KEYDOWN and event.key == pg.K_DOWN:
@@ -334,9 +334,9 @@ def gameloop():
                 quit()
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                     #print(pg.font.get_fonts())
-                #orang.kill()
+                orang.kill()
                 
-                print(pausetitle.cont)
+                
             if event.type == pg.KEYDOWN and event.key == pg.K_UP:
                 orang.jump()
             if event.type == pg.KEYDOWN and event.key == pg.K_DOWN:

@@ -46,7 +46,7 @@ class player(pg.sprite.Sprite):
         self.SCREENWIDTH = SCREENWIDTH
 
 
-        self.pos = vec((10, 490))
+        self.pos = vec((100, 960))
         self.vel = vec(0,0)
         self.acc = vec(0,0)
         
