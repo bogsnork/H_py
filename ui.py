@@ -63,12 +63,12 @@ class button(pg.sprite.Sprite):
 
 
 class text(pg.sprite.Sprite):
-    def __init__(self, SCREENWIDTH, all_sprites, titlefont):
+    def __init__(self, SCREENWIDTH, all_sprites, font):
         pg.sprite.Sprite.__init__(self)
         
         self.col = (0, 0, 0)
         self.cont = " Start"
-        self.surf = pg.font.Font.render(titlefont, self.cont, False, self.col)
+        self.surf = pg.font.Font.render(font, self.cont, False, self.col)
         self.rect = self.surf.get_rect(center = (SCREENWIDTH/2, 15))
         
         all_sprites.add(self)

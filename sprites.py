@@ -21,7 +21,7 @@ class player(pg.sprite.Sprite):
     x = 30
     y = 300
     
-    def __init__(self, all_sprites, platforms, enemies, weapons, GRAV, FRIC, ACC, SCREENWIDTH):
+    def __init__(self, all_sprites, platforms, enemies, weapons, loot, GRAV, FRIC, ACC, SCREENWIDTH, bones):
         pg.sprite.Sprite.__init__(self)
         
         self.characterfile = "sprites/orangphotofw{}.png"
@@ -38,6 +38,8 @@ class player(pg.sprite.Sprite):
         self.platforms = platforms
         self.enemies = enemies
         self.weapons = weapons
+        self.loot = loot
+        self.bones = bones
         self.GRAV = GRAV
         self.FRIC = FRIC
         self.ACC = ACC
@@ -90,6 +92,11 @@ class player(pg.sprite.Sprite):
                     self.vel.y = 0
                     self.jumping = False
             
+        hit = pg.sprite.spritecollide(self , self.loot, True)
+        if hit:
+            
+            self.bones += 1
+
         if self.hp == 0:
             self.kill()
 
@@ -257,7 +264,7 @@ class weapon(pg.sprite.Sprite):
 
 
 class enemy(pg.sprite.Sprite):
-    def __init__(self, orang, all_sprites, platforms, enemies, weapons, GRAV, FRIC, ACC, SCREENWIDTH):
+    def __init__(self, orang, all_sprites, platforms, enemies, weapons, loot, GRAV, FRIC, ACC, SCREENWIDTH):
         pg.sprite.Sprite.__init__(self)
         
         self.orang = orang
@@ -265,6 +272,7 @@ class enemy(pg.sprite.Sprite):
         self.platforms = platforms
         self.enemies = enemies
         self.weapons = weapons
+        self.loot = loot
         self.GRAV = GRAV
         self.FRIC = FRIC
         self.ACC = ACC
@@ -321,7 +329,7 @@ class enemy(pg.sprite.Sprite):
         if self.hp <= 0:
             print(self.pos)
             self.kill()
-            bone = loot(self.orang, self.all_sprites, self.platforms, self)
+            bone = loot(self.orang, self.all_sprites, self.platforms, self.loot, self, self.GRAV)
             self.all_sprites.add(bone)
             print(bone.pos)
 
@@ -391,18 +399,40 @@ class enemy(pg.sprite.Sprite):
 
 
 class loot(pg.sprite.Sprite):
-    def __init__(self, orang, all_sprites, platforms, spawner):  #, enemies, weapons, GRAV, FRIC, ACC, SCREENWIDTH):
+    def __init__(self, orang, all_sprites, platforms, loot, spawner, GRAV):  #, enemies, weapons, FRIC, ACC, SCREENWIDTH):
         pg.sprite.Sprite.__init__(self)
         self.orang = orang
         self.all_sprites = all_sprites
         self.platforms = platforms
-        
+        self.loot = loot
+        self.GRAV = GRAV
+
         self.imageroot = ("sprites/bonesprite.png")
         self.image = pg.image.load("sprites/bonesprite.png")
         self.surf = pg.image.load("sprites/bonesprite.png")
 
-        self.pos = vec(spawner.pos)
+        self.pos = vec(spawner.rect.center)
+        self.vel = vec(0,0)
+        self.acc = vec(0,0)
+        self.weight = 1
 
         self.rect = self.image.get_rect()
-      
+        
+        self.rect.midbottom = self.pos
+
+        self.loot.add(self)
         self.all_sprites.add(self)
+    def update(self):
+        self.acc = vec(0, self.GRAV*self.weight)
+        hits = pg.sprite.spritecollide(self , self.platforms, False)
+        if self.vel.y > 0:
+            if hits:
+                if self.pos.y < hits[0].rect.bottom:               
+                    self.pos.y = hits[0].rect.top +1
+                    self.vel.y = 0
+
+        self.acc.x += self.vel.x
+        self.vel += self.acc
+        self.pos += self.vel + 0.5 * self.acc
+
+        self.rect.midbottom = self.pos

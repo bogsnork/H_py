@@ -38,10 +38,10 @@ platforms = pg.sprite.Group()
 weapons = pg.sprite.Group()
 loot = pg.sprite.Group()
 titlefont = pg.font.Font(None, 115)
-#buttontext = pg.font.Font(None,55)
+invfont = pg.font.Font(None,55)
 invsprites = pg.sprite.Group()
 pausesprites = pg.sprite.Group()
-
+bones = 0
 
 
 def end_intro():
@@ -198,7 +198,13 @@ def openinv():
     inv = True
     invtitle = text(SCREENWIDTH, all_sprites, titlefont)
     invtitle.settext("Inventory", (255, 255, 255))
+    invtitle.setloc(350, 100)
     invsprites.add(invtitle)
+
+    bonecount = text(SCREENWIDTH, all_sprites, invfont)
+    bonecount.settext(str(orang.bones), (255, 255, 255))
+    bonecount.setloc(0, 150)
+    invsprites.add(bonecount)
 
     while inv:
         for event in pg.event.get():
@@ -268,8 +274,8 @@ def gameloopfirst():
     plat1.setsize(30, 200)
 
     global orang
-    orang = player(all_sprites, platforms, enemies, weapons, GRAV, FRIC, ACC, SCREENWIDTH)
-    liz1 = enemy(orang, all_sprites, platforms, enemies, weapons, GRAV, FRIC, ACC, SCREENWIDTH)
+    orang = player(all_sprites, platforms, enemies, weapons, loot, GRAV, FRIC, ACC, SCREENWIDTH, bones)
+    liz1 = enemy(orang, all_sprites, platforms, enemies, weapons, loot, GRAV, FRIC, ACC, SCREENWIDTH)
     global done
     while not done:
         #event loop
